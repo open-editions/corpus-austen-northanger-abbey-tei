@@ -28,7 +28,6 @@
           ];
           shellHook = ''
             export PYTHONPATH="$PYTHONPATH:/home/jon/Programaroj/libroj/src"
-            echo "Environment loaded. Libroj added to PYTHONPATH."
           '';
         };
       }

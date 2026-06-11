@@ -116,7 +116,7 @@ def generate_tei(html_path):
     resp = ET.SubElement(respStmt, "resp")
     resp.text = "creation of machine-readable version"
     respName = ET.SubElement(respStmt, "name")
-    respName.text = "Gemini CLI using Libroj"
+    respName.text = "Gemini CLI with Libroj integration"
     
     pubStmt = ET.SubElement(fileDesc, "publicationStmt")
     publisher = ET.SubElement(pubStmt, "publisher")
@@ -147,7 +147,7 @@ def generate_tei(html_path):
     change = ET.SubElement(revisionDesc, "change", when="2026-06-10")
     ET.SubElement(change, "label").text = "Editor"
     ET.SubElement(change, "name").text = "Gemini CLI"
-    change.text = "Began creation of Open Editions TEI XML for Northanger Abbey using Libroj."
+    change.text = "Began creation of Open Editions TEI XML for Northanger Abbey using Libroj pipeline."
 
     text_tag = ET.SubElement(tei_root, "text")
     front = ET.SubElement(text_tag, "front")
@@ -182,7 +182,6 @@ def generate_tei(html_path):
         head.text = chap_h2.get_text().strip()
         
         curr = chap_h2.find_next_sibling()
-        line_num = 1
         while curr:
             if curr.name == 'h2':
                 break
@@ -190,19 +189,13 @@ def generate_tei(html_path):
                 text = curr.get_text().strip()
                 if text:
                     tei_p = ET.SubElement(div, "p")
-                    lines = [l.strip() for l in text.split('\n') if l.strip()]
-                    for line in lines:
-                        lb = ET.SubElement(tei_p, "lb", n=f"{i}{line_num:04d}")
-                        mark_intertextuality(tei_p, line)
-                        line_num += 1
+                    mark_intertextuality(tei_p, text)
             elif curr.name == 'pre':
                 lg = ET.SubElement(div, "lg", type="verse")
                 for line in curr.get_text().split('\n'):
                     if line.strip():
                         l_tag = ET.SubElement(lg, "l")
-                        lb = ET.SubElement(l_tag, "lb", n=f"{i}{line_num:04d}")
                         mark_intertextuality(l_tag, line.strip())
-                        line_num += 1
             curr = curr.find_next_sibling()
 
     xmlstr = ET.tostring(tei_root, encoding='utf-8')

@@ -1,0 +1,9 @@
+sources/
+*.xml
+!northanger-abbey.xml
+trial.xml
+body.xml
+test_body.xml
+chapter1.txt
+chapter1_lb.xml
+scripts/__pycache__/
