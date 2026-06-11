@@ -23,49 +23,64 @@ NOVELS = {
     "Belinda": "Q2894491",
     "The Monk": "Q2659564",
     "Tom Jones": "Q248096",
-    "Sir Charles Grandison": "Q3521260"
+    "The History of Tom Jones, a Foundling": "Q248096",
+    "Sir Charles Grandison": "Q3521260",
+    "The History of Sir Charles Grandison": "Q3521260",
+    "The Castle of Wolfenbach": "Q7721588",
+    "Castle of Wolfenbach": "Q7721588",
+    "Clermont": "Q5131885",
+    "Mysterious Warnings": "Q6948135",
+    "The Mysterious Warning": "Q6948135",
+    "The Necromancer; or, The Tale of the Black Forest": "Q7753331",
+    "The Necromancer": "Q7753331",
+    "Necromancer of the Black Forest": "Q7753331",
+    "The Midnight Bell": "Q7751307",
+    "Midnight Bell": "Q7751307",
+    "The Orphan of the Rhine": "Q7755439",
+    "Orphan of the Rhine": "Q7755439",
+    "Horrid Mysteries": "Q5905030"
 }
-
-def get_wikidata_label(qid):
-    uri = f"http://www.wikidata.org/entity/{qid}"
-    sparql = f"""
-    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    SELECT ?label WHERE {{ <{uri}> rdfs:label ?label . FILTER(LANG(?label) = 'en') }}
-    """
-    results = store.query(sparql)
-    for row in results:
-        return row["label"].value
-    return None
 
 def get_work_metadata(qid):
     uri = f"http://www.wikidata.org/entity/{qid}"
     sparql = f"""
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-    SELECT ?pLabel ?oLabel WHERE {{
+    SELECT DISTINCT ?pLabel ?oLabel ?o WHERE {{
       <{uri}> ?p ?o .
-      OPTIONAL {{ ?p rdfs:label ?pLabel . FILTER(LANG(?pLabel) = "en") }}
-      OPTIONAL {{ ?o rdfs:label ?oLabel . FILTER(LANG(?oLabel) = "en") }}
+      ?p rdfs:label ?pLabel .
+      OPTIONAL {{ ?o rdfs:label ?oLabel . FILTER(LANG(?oLabel) = 'en') }}
+      FILTER(LANG(?pLabel) = 'en')
     }}
     """
     results = store.query(sparql)
     metadata = {}
     for row in results:
-        p = row["pLabel"].value if "pLabel" in row else None
-        o = row["oLabel"].value if "oLabel" in row else None
-        if p and o:
-            if p not in metadata:
-                metadata[p] = []
-            metadata[p].append(o)
+        p = row["pLabel"].value
+        o = row["oLabel"].value if row["oLabel"] else row["o"].value
+        if p not in metadata:
+            metadata[p] = []
+        metadata[p].append(o)
     return metadata
 
 def mark_intertextuality(parent, text):
     last_end = 0
     # Sort keys by length descending
     sorted_titles = sorted(NOVELS.keys(), key=len, reverse=True)
-    pattern_str = r'\b(' + '|'.join(re.escape(t) for t in sorted_titles) + r')\b'
+    
+    # Create a regex that allows any whitespace (including newlines) between words
+    patterns = []
+    for t in sorted_titles:
+        p = re.escape(t).replace(r'\ ', r'\s+')
+        patterns.append(f"(?P<title_{hash(t) & 0xFFFFFFFF}>{p})")
+    
+    pattern_str = r'\b(' + '|'.join(patterns) + r')\b'
     pattern = re.compile(pattern_str, re.IGNORECASE)
     
+    # To map back from group name to QID, we need a map
+    group_to_qid = {}
+    for t, qid in NOVELS.items():
+        group_to_qid[f"title_{hash(t) & 0xFFFFFFFF}"] = qid
+
     for match in pattern.finditer(text):
         if match.start() > last_end:
             if len(parent) > 0:
@@ -77,9 +92,12 @@ def mark_intertextuality(parent, text):
                 parent.text = (parent.text or "") + text[last_end:match.start()]
         
         matched_text = match.group(0)
-        # Find the original title key to get QID
-        original_title = next(t for t in sorted_titles if re.fullmatch(re.escape(t), matched_text, re.IGNORECASE))
-        qid = NOVELS[original_title]
+        # Find which group matched
+        qid = None
+        for g_name, q in group_to_qid.items():
+            if match.group(g_name):
+                qid = q
+                break
         
         ref = ET.SubElement(parent, "ref", target=f"https://www.wikidata.org/wiki/{qid}")
         ref.text = matched_text
@@ -98,7 +116,7 @@ def generate_tei(html_path):
     with open(html_path, 'r', encoding='utf-8') as f:
         html_soup = BeautifulSoup(f, 'html.parser')
 
-    # Get Metadata for Northanger Abbey (Q477508)
+    # Get Metadata for Northanger Abbey (Q477508) and Jane Austen (Q36322)
     work_meta = get_work_metadata("Q477508")
     author_meta = get_work_metadata("Q36322")
     
@@ -111,7 +129,12 @@ def generate_tei(html_path):
     mainTitle = ET.SubElement(titleStmt, "title", type="main")
     mainTitle.text = "Northanger Abbey"
     author = ET.SubElement(titleStmt, "author")
-    author.text = "Austen, Jane, 1775-1817"
+    
+    # Get author dates from author_meta
+    birth = author_meta.get("date of birth", ["1775"])[0][:4]
+    death = author_meta.get("date of death", ["1817"])[0][:4]
+    author.text = f"Austen, Jane, {birth}-{death}"
+    
     respStmt = ET.SubElement(titleStmt, "respStmt")
     resp = ET.SubElement(respStmt, "resp")
     resp.text = "creation of machine-readable version"
@@ -133,7 +156,11 @@ def generate_tei(html_path):
     ET.SubElement(bibl, "author").text = "Jane Austen"
     ET.SubElement(bibl, "publisher").text = "Project Gutenberg"
     ET.SubElement(bibl, "idno", type="Gutenberg").text = "121"
-    ET.SubElement(bibl, "date").text = "2010"
+    
+    # Get publication year from work_meta
+    pub_date_raw = work_meta.get("publication date", ["1818"])
+    pub_year = pub_date_raw[0][:4] if pub_date_raw else "1818"
+    ET.SubElement(bibl, "date").text = pub_year
     
     # profileDesc
     profileDesc = ET.SubElement(header, "profileDesc")
@@ -142,6 +169,12 @@ def generate_tei(html_path):
     term = ET.SubElement(keywords, "term", xmlid="Q477508")
     term.text = "Northanger Abbey"
     
+    # Add genre keywords from work_meta
+    if "genre" in work_meta:
+        for genre in work_meta["genre"]:
+            g_term = ET.SubElement(keywords, "term")
+            g_term.text = genre
+
     # revisionDesc
     revisionDesc = ET.SubElement(header, "revisionDesc")
     change = ET.SubElement(revisionDesc, "change", when="2026-06-10")

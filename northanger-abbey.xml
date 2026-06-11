@@ -23,7 +23,7 @@
           <author>Jane Austen</author>
           <publisher>Project Gutenberg</publisher>
           <idno type="Gutenberg">121</idno>
-          <date>2010</date>
+          <date>1818</date>
         </bibl>
       </sourceDesc>
     </fileDesc>
@@ -31,6 +31,7 @@
       <textClass>
         <keywords scheme="http://www.wikidata.org/entity/">
           <term xmlid="Q477508">Northanger Abbey</term>
+          <term>romantic fiction</term>
         </keywords>
       </textClass>
     </profileDesc>
@@ -826,10 +827,26 @@
       ten or twelve more of the same kind for you.”
         </p>
         <p>“Have you, indeed! How glad I am! What are they all?”</p>
-        <p>“I will read you their names directly; here they are, in my pocketbook.
-      Castle of Wolfenbach, Clermont, Mysterious Warnings, Necromancer of the
-      Black Forest, Midnight Bell, Orphan of the Rhine, and Horrid Mysteries.
-      Those will last us some time.”</p>
+        <p>
+          “I will read you their names directly; here they are, in my pocketbook.
+      
+          <ref target="https://www.wikidata.org/wiki/Q7721588">Castle of Wolfenbach</ref>
+          , 
+          <ref target="https://www.wikidata.org/wiki/Q5131885">Clermont</ref>
+          , 
+          <ref target="https://www.wikidata.org/wiki/Q6948135">Mysterious Warnings</ref>
+          , 
+          <ref target="https://www.wikidata.org/wiki/Q7753331">Necromancer of the
+      Black Forest</ref>
+          , 
+          <ref target="https://www.wikidata.org/wiki/Q7751307">Midnight Bell</ref>
+          , 
+          <ref target="https://www.wikidata.org/wiki/Q7755439">Orphan of the Rhine</ref>
+          , and 
+          <ref target="https://www.wikidata.org/wiki/Q5905030">Horrid Mysteries</ref>
+          .
+      Those will last us some time.”
+        </p>
         <p>“Yes, pretty well; but are they all horrid, are you sure they are all
       horrid?”</p>
         <p>“Yes, quite sure; for a particular friend of mine, a Miss Andrews, a sweet
@@ -2779,9 +2796,9 @@
         <p>“You have been abroad then?” said Henry, a little surprised.</p>
         <p>
           “Oh! No, I only mean what I have read about. It always puts me in mind of
-      the country that Emily and her father travelled through, in The Mysteries
-      of 
-          <ref target="https://www.wikidata.org/wiki/Q2600909">Udolpho</ref>
+      the country that Emily and her father travelled through, in 
+          <ref target="https://www.wikidata.org/wiki/Q2600909">The Mysteries
+      of Udolpho</ref>
           . But you never read novels, I dare say?”
         </p>
         <p>“Why not?”</p>
