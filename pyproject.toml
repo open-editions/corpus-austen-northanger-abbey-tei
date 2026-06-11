@@ -1,0 +1,16 @@
+[project]
+name = "corpus-austen-northanger-abbey-tei"
+version = "0.1.0"
+description = "Open Editions TEI version of Northanger Abbey"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4",
+    "pyoxigraph",
+    "httpx",
+    "lxml",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest",
+]
